@@ -1,0 +1,1 @@
+To run bash commands in claude (terminal) : Simply press Shift + 1 (!)
