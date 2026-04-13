@@ -23,7 +23,7 @@ landing.html.
 3. In @templates/landing.html, update the "Terms and Conditions"
 footer link href from "#" to "/terms".
 
-git commit -m "landing: add terms and conditions page and route”
+git commit -m "landing: add terms and conditions page and route"
 
 Do the same as you did for the Terms and Conditions page,
 but for Privacy Policy.
@@ -39,7 +39,7 @@ Match the style of terms.html.
 footer link href from "#" to "/privacy".
 4. Make sure the appearance looks like the website's theme
 
-git commit -m "landing: add privacy policy page and route”
+git commit -m "landing: add privacy policy page and route"
 
 I've attached a screenshot of the updated Spendly hero section design.
 
