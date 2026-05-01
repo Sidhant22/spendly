@@ -422,11 +422,17 @@ a { color: inherit; text-decoration: none; }
     margin-bottom: 1.25rem;
 }
 
+.flash-container {
+    max-width: var(--max-width);
+    margin: 1rem auto 0;
+    padding: 0 2rem;
+}
+
 .flash {
     border-radius: var(--radius-sm);
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 0.5rem;
 }
 
 .flash.error {
@@ -999,6 +1005,84 @@ a { color: inherit; text-decoration: none; }
     color: var(--ink-faint);
 }
 
+/* ── Profile filter bar ──────────────────────────────────────────── */
+.profile-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.filter-presets {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    background: var(--paper-card);
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.filter-pill:hover,
+.filter-pill.active {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent);
+}
+
+.filter-custom {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-date-input {
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    color: var(--ink);
+    background: var(--paper-card);
+}
+
+.filter-sep {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+}
+
+.filter-apply {
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+}
+
+.filter-active-label {
+    font-size: 0.8rem;
+    color: var(--ink-muted);
+    padding: 0.75rem 1.5rem 0;
+    margin: 0;
+}
+
+.filter-active-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-family: var(--font-body);
+    font-weight: 500;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
 @media (max-width: 900px) {
     .profile-body { grid-template-columns: 1fr; }
 }
@@ -1006,4 +1090,6 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) {
     .profile-page { padding: 2rem 1rem 3rem; }
     .profile-header-card { flex-direction: column; align-items: flex-start; }
+    .profile-filter-bar { flex-direction: column; align-items: flex-start; }
+    .filter-custom { flex-wrap: wrap; }
 }
