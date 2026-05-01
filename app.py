@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash
 from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
@@ -6,6 +7,21 @@ from database.queries import get_user_by_id, get_summary_stats, get_recent_trans
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key"
+
+
+def months_ago(reference_date, n):
+    m = reference_date.month - n
+    y = reference_date.year + (m - 1) // 12
+    m = ((m - 1) % 12) + 1
+    return date(y, m, 1).isoformat()
+
+
+def parse_date(value):
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+    except ValueError:
+        return None
 
 with app.app_context():
     init_db()
@@ -117,16 +133,37 @@ def profile():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
+    today = date.today()
+
+    presets = {
+        "this_month":    (today.replace(day=1).isoformat(), today.isoformat()),
+        "last_3_months": (months_ago(today, 3), today.isoformat()),
+        "last_6_months": (months_ago(today, 6), today.isoformat()),
+    }
+
+    date_from = parse_date(request.args.get("date_from", "").strip())
+    date_to   = parse_date(request.args.get("date_to",   "").strip())
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.", "error")
+        date_from = date_to = None
+
+    if not (date_from and date_to):
+        date_from = date_to = None
+
     user         = get_user_by_id(user_id)
-    stats        = get_summary_stats(user_id)
-    transactions = get_recent_transactions(user_id)
-    categories   = get_category_breakdown(user_id)
+    stats        = get_summary_stats(user_id, date_from, date_to)
+    transactions = get_recent_transactions(user_id, date_from=date_from, date_to=date_to)
+    categories   = get_category_breakdown(user_id, date_from, date_to)
 
     return render_template("profile.html",
                            user=user,
                            stats=stats,
                            transactions=transactions,
-                           categories=categories)
+                           categories=categories,
+                           date_from=date_from,
+                           date_to=date_to,
+                           presets=presets)
 
 
 @app.route("/expenses/add")
