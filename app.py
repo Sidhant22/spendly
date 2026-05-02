@@ -1,12 +1,15 @@
+import os
 import sqlite3
 from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash
 from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
-from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown
+from database.queries import get_user_by_id, get_summary_stats, get_recent_transactions, get_category_breakdown, insert_expense
 
 app = Flask(__name__)
-app.secret_key = "dev-secret-key"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+VALID_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
 
 
 def months_ago(reference_date, n):
@@ -173,9 +176,56 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+def _rerender_add_expense(msg, amount_raw, category, date_raw, description):
+    flash(msg, "error")
+    return render_template(
+        "add_expense.html",
+        today=date.today().isoformat(),
+        categories=VALID_CATEGORIES,
+        amount=amount_raw,
+        category=category,
+        date_val=date_raw,
+        description=description,
+    )
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template("add_expense.html", today=date.today().isoformat(), categories=VALID_CATEGORIES)
+
+    user_id = session["user_id"]
+    amount_raw = request.form.get("amount", "").strip()
+    category = request.form.get("category", "").strip()
+    date_raw = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip()
+
+    try:
+        amount = float(amount_raw)
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        return _rerender_add_expense("Amount must be a positive number.", amount_raw, category, date_raw, description)
+
+    if category not in VALID_CATEGORIES:
+        return _rerender_add_expense("Please select a valid category.", amount_raw, category, date_raw, description)
+
+    try:
+        datetime.strptime(date_raw, "%Y-%m-%d")
+    except ValueError:
+        return _rerender_add_expense("Please enter a valid date.", amount_raw, category, date_raw, description)
+
+    if len(description) > 200:
+        return _rerender_add_expense("Description must be 200 characters or fewer.", amount_raw, category, date_raw, description)
+
+    description = description or None
+
+    insert_expense(user_id, amount, category, date_raw, description)
+    flash("Expense added successfully", "success")
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
@@ -189,4 +239,4 @@ def delete_expense(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1", port=5001)
